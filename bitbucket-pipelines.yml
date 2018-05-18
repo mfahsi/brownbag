@@ -1,0 +1,32 @@
+# This is a sample build configuration for Scala.
+# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your environment.
+image: bitbucketpipelines/scala-sbt:scala-2.12
+
+aws:
+    access-key: $AWS_ACCESS_KEY_ID
+    secret-key: $AWS_SECRET_ACCESS_KEY
+options:
+  docker: true
+pipelines:
+  default:
+    - step:
+        script: # Modify the commands below to build your repository.
+          - export IMAGE_NAME=mfa:latest
+          - sbt -DskipTests docker
+#         - echo Logging in to DockerHub
+#         - docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+#no need for DockerHub     - docker push $IMAGE_NAME
+          - echo installing aws client
+          - apt-get update && apt-get install -y python-dev
+          - curl -O https://bootstrap.pypa.io/get-pip.py
+          - python get-pip.py
+          - pip install awscli
+          - echo logging to amazon ecr using 
+          - eval $(aws ecr get-login --no-include-email --region eu-central-1)
+          - echo pushing to ecr
+          - docker tag mfa:latest 286230295403.dkr.ecr.eu-central-1.amazonaws.com/mfa:latest
+          - echo Pushing the Docker image to aws...
+          - docker push 286230295403.dkr.ecr.eu-central-1.amazonaws.com/mfa:latest
